@@ -93,9 +93,9 @@ namespace I2P2 {
   /***********************/
   /* class list_iterator */                                                  
   /***********************/
-  Node::Node():_next(nullptr), _prev(nullptr), Is_head(false){}
+  Node::Node():_next(nullptr), _prev(nullptr){}
 
-  Node::Node(value_type data):_next(nullptr), _prev(nullptr), Is_head(false), data(data){}
+  Node::Node(value_type data, difference_type idx):_next(nullptr), _prev(nullptr), data(data), index(idx){}
 
   list_iterator::list_iterator():list_pt(nullptr){}
 
@@ -165,26 +165,11 @@ namespace I2P2 {
 
   difference_type list_iterator::operator-(const iterator_impl_base &rhs) const{
     const list_iterator* temp_pt;
-    Node *curr1, *curr2;
-    difference_type diff1 = 0;
-    difference_type diff2 = 0;
-    if ((*this) == rhs) return 0;
-    else{
-      if (dynamic_cast<const list_iterator*>(&rhs)){
-        temp_pt = dynamic_cast<const list_iterator*>(&rhs);
-        curr1 = list_pt;
-        curr2 = temp_pt->list_pt;
-        while(curr1->Is_head != 1){
-          curr1 = curr1->_next;
-          diff1--;
-        }
-        while(curr2->Is_head != 1){
-          curr2 = curr2->_next;
-          diff2--;
-        }
-      }
+    if (dynamic_cast<const list_iterator*>(&rhs)){
+      temp_pt = dynamic_cast<const list_iterator*>(&rhs);
+      return (this->list_pt->index) - (temp_pt->list_pt->index);
     }
-    return (diff1 - diff2);
+    return 0;
   }
 
   pointer list_iterator::operator->() const{

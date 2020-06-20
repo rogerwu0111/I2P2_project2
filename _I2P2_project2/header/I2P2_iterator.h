@@ -55,10 +55,10 @@ class vector_iterator : public iterator_impl_base {
 struct Node{
   Node* _next;
   Node* _prev;
-  bool Is_head;
   value_type data;
+  difference_type index;
   Node();
-  Node(value_type data);
+  Node(value_type data, difference_type idx);
 };
 
 class list_iterator : public iterator_impl_base {

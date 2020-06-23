@@ -111,16 +111,30 @@ namespace I2P2 {
 
   iterator_impl_base & list_iterator::operator+=(difference_type offset){
     int i;
-    for (i=0; i<offset; i++){
-      list_pt = list_pt->_next;
+    if (offset > 0){
+      for (i=0; i<offset; i++){
+        list_pt = list_pt->_next;
+      }
+    }
+    else{
+      for (i=0; i<-offset; i++){
+        list_pt = list_pt->_prev;
+      }
     }
     return *this;
   }
 
   iterator_impl_base & list_iterator::operator-=(difference_type offset){
     int i;
-    for (i=0; i<offset; i++){
-      list_pt = list_pt->_prev;
+    if (offset > 0){
+      for (i=0; i<offset; i++){
+        list_pt = list_pt->_prev;
+      }
+    }
+    else{
+      for (i=0; i<-offset; i++){
+        list_pt = list_pt->_next;
+      }
     }
     return *this;
   }
@@ -183,8 +197,15 @@ namespace I2P2 {
   reference list_iterator::operator[](difference_type offset) const{
     Node* curr = list_pt;
     int i;
-    for (i=0; i<offset; i++){
-      curr = curr->_next;
+    if (offset > 0){
+      for (i=0; i<offset; i++){
+        curr = curr->_next;
+      }
+    }
+    else{       
+      for (i=0; i<-offset; i++){
+        curr = curr->_prev;
+      }
     }
     return (curr->data);
   }

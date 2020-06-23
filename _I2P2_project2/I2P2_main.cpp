@@ -9,6 +9,7 @@ void print(I2P2::List &lst){
   std::cout << *it << ' ';
   }
   std::cout << '\n';
+  std::cout << lst.size() << '\n';
 }
 
 int main(){
@@ -17,51 +18,23 @@ int main(){
     
     I2P2::List lst;
 
-    lst.insert(lst.begin(), 3, 200);
-
-    //print(lst);
-
-    lst.insert(lst.begin(), lst.begin(), lst.end());
-
-    //print(lst);
-
-    lst.push_front(100);
-
-    //I2P2::iterator x = lst.begin();
-
-    //std::cout << *x << '\n';
-
-    //print(lst);
-
-    lst.erase(lst.begin()+3);
-
-    //print(lst);
-
-    lst.erase(lst.begin(), lst.begin()+2);
-
-    //print(lst);
+    lst.insert(lst.begin(), 1, 200);
 
     lst.push_back(300);
 
-    //print(lst);
+    lst.push_front(100);
 
-    lst.pop_front();
+    lst.insert(lst.begin(), lst.begin(), lst.end());
 
-    //print(lst);
+    lst.erase(lst.begin()+3);
 
-    lst.pop_back();
+    lst.insert(lst.begin(), lst.begin(), lst.end());
 
-    //print(lst);
+    lst.erase(lst.begin()+2, lst.begin()+8);
 
-    I2P2::List lst2 = lst;
+    lst.insert(lst.begin(), 5, 100);
 
-    lst2.clear();
-
-    lst2.push_back(100);
-
-    //print(lst2);
-
-    std::cout << lst.front() << '\n';
+    print(lst);
 
     std::cout << "Finish" <<std::endl;
 }

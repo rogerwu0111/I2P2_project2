@@ -7,19 +7,21 @@ namespace I2P2 {
     delete _head;
   }
 
-  List::List(){
+  List::List():_size(0){
     _head = new Node();
     _head->_next = _head;
     _head->_prev = _head;
-    _head->index = 0;
+    _head->Is_head = true;
   }
 
   List::List(const List &rhs){
     _head = new Node;
+    _head->Is_head = true;
+
     Node* curr = _head;
-    Node* curr_rhs = (rhs._head)->_next;
+    Node*curr_rhs = (rhs._head)->_next;
     while(curr_rhs != rhs._head){
-      curr->_next = new Node(curr_rhs->data, curr_rhs->index);
+      curr->_next = new Node(curr_rhs->data);
       curr->_next->_prev = curr;
       curr = curr->_next;
       curr_rhs = curr_rhs->_next;
@@ -27,15 +29,20 @@ namespace I2P2 {
     curr->_next = _head;
     _head->_prev = curr;
 
-    _head->index = (rhs._head)->index;
+    _size = rhs._size;
   }
 
   List & List::operator=(const List &rhs){
-    clear();
+    if (_head == nullptr){
+      _head = new Node;
+      _head->Is_head = true;
+    }
+    else {clear();}
+
     Node* curr = _head;
-    Node* curr_rhs = (rhs._head)->_next;
+    Node*curr_rhs = (rhs._head)->_next;
     while(curr_rhs != rhs._head){
-      curr->_next = new Node(curr_rhs->data, curr_rhs->index);
+      curr->_next = new Node(curr_rhs->data);
       curr->_next->_prev = curr;
       curr = curr->_next;
       curr_rhs = curr_rhs->_next;
@@ -43,7 +50,7 @@ namespace I2P2 {
     curr->_next = _head;
     _head->_prev = curr;
 
-    _head->index = (rhs._head)->index;
+    _size = rhs._size;
     return *this;
   }
 
@@ -63,7 +70,7 @@ namespace I2P2 {
 
   const_reference List::back() const{return _head->_prev->data;}
 
-  size_type List::size() const{return _head->index;}
+  size_type List::size() const{return _size;}
 
   void List::clear(){
     Node* curr = _head->_next;
@@ -75,197 +82,126 @@ namespace I2P2 {
     }
     _head->_next = _head;
     _head->_prev = _head;
-    _head->index = 0;
+    _size = 0;
   }
 
-  bool List::empty() const{return (_head->index) == 0;}
+  bool List::empty() const{return _size == 0;}
 
   void List::erase(const_iterator pos){
-    // move data
     Node* curr = find_Node_addr(&(*pos));
-    while(curr != _head->_prev){
-      curr->data = curr->_next->data;
-      curr = curr->_next;
-    }
-
-    // delete Node
-    Node* pre_head = _head->_prev;
-    Node* nex_head = _head->_next;
-    pre_head->_next = nex_head;
-    nex_head->_prev = pre_head;
-    delete _head;
-    _head = pre_head;
+    Node* pre = curr->_prev;
+    Node* nex = curr->_next;
+    pre->_next = nex;
+    nex->_prev = pre;
+    delete curr;
+    _size--;
   }
 
   void List::erase(const_iterator begin, const_iterator end){
-    difference_type offset = end - begin;
-    Node* curr1 = find_Node_addr(&(*begin));
-    Node* curr2 = find_Node_addr(&(*end));
-    // move data
-    while(curr2 != _head){
-      curr1->data = curr2->data;
-      curr1 = curr1->_next;
-      curr2 = curr2->_next;
-    }
-    // delete Node
-    Node* nex_head = _head->_next;
-    Node* curr = _head;
+    Node* curr = find_Node_addr(&(*begin));
+    Node* end_node = find_Node_addr(&(*end));
+    Node* pre_begin = curr->_prev;
     Node* temp;
-    difference_type i = 0;
-    while(i < offset){
+    while(curr != end_node){
       temp = curr;
-      curr = curr->_prev;
+      curr = curr->_next;
       delete temp;
-      ++i;
+      _size--;
     }
-    curr->_next = nex_head;
-    nex_head->_prev = curr;
-
-    _head = curr;
+    pre_begin->_next = end_node;
+    end_node->_prev = pre_begin;
   }
 
-  void List::insert(const_iterator pos, size_type count, const_reference val){
-    Node* _pos = find_Node_addr(&(*pos));
-    difference_type number_to_move = (_head->index) - (_pos->index);  
-    Node* original_head = _head;
-    // increase Node
-    Node* nex_head = _head->_next;
-    Node* curr = _head;
-    difference_type i = 0;
-    difference_type idx = _head->index + 1;
-    while(i < count){
-      curr->_next = new Node;
-      curr->_next->index = idx;
+ void List::insert(const_iterator pos, size_type count, const_reference val){
+    Node* curr = find_Node_addr(&(*pos));
+    curr = curr->_prev;
+    Node* nex_curr = curr->_next;
+    size_type i;
+    for (i=0; i<count; i++){
+      curr->_next = new Node(val);
       curr->_next->_prev = curr;
       curr = curr->_next;
-      ++idx;
-      ++i;
     }
-    curr->_next = nex_head;
-    nex_head->_prev = curr;
-    
-    _head = curr;
-    // move data
-    Node* curr1 = _head->_prev;
-    Node* curr2 = original_head->_prev;
-    i = 0;
-    while(i < number_to_move){
-      curr1->data = curr2->data;
-      curr1 = curr1->_prev;
-      curr2 = curr2->_prev;
-      i++;
-    }
-    // insert value
-    i = 0;
-    while (i < count){
-      _pos->data = val;
-      _pos = _pos->_next;
-      i++;
-    }
+    curr->_next = nex_curr;
+    nex_curr->_prev = curr;
+
+    _size += count;
   }
 
   void List::insert(const_iterator pos, const_iterator begin, const_iterator end){
     Node* _pos = find_Node_addr(&(*pos));
-    difference_type number_to_move = (_head->index) - (_pos->index);
     difference_type number_to_insert = end - begin;
-    Node* original_head = _head;
-    // increase Node
-    Node* nex_head = _head->_next;
-    Node* curr = _head;
-    difference_type i = 0;
-    difference_type idx = _head->index + 1;
-    while(i < number_to_insert){
-      curr->_next = new Node;
-      curr->_next->index = idx;
+    value_type* temp = new value_type[number_to_insert];
+    // copy
+    const_iterator it(begin);
+    difference_type j = 0;
+    while(j < number_to_insert){
+      temp[j] = *it;
+      ++it;
+      ++j;
+    }
+
+    // insert
+    Node* curr = _pos;
+    curr = curr->_prev;
+    Node* nex_curr = curr->_next;
+    size_type i;
+    for (i=0; i<number_to_insert; i++){
+      curr->_next = new Node(temp[i]);
       curr->_next->_prev = curr;
       curr = curr->_next;
-      ++idx;
-      ++i;
     }
-    curr->_next = nex_head;
-    nex_head->_prev = curr;
-    
-    _head = curr;
-    // move data
-    Node* curr1 = _head->_prev;
-    Node* curr2 = original_head->_prev;
-    i = 0;
-    while(i < number_to_move){
-      curr1->data = curr2->data;
-      curr1 = curr1->_prev;
-      curr2 = curr2->_prev;
-      i++;
-    }
-    // insert value
-    i = 0;
-    const_iterator it = begin;
-    while(i < number_to_insert){
-      _pos->data = *it;
-      _pos = _pos->_next;
-      ++it;
-      ++i;
-    }
+    curr->_next = nex_curr;
+    nex_curr->_prev = curr;
+
+    _size += number_to_insert;
+    delete [] temp;
   }
 
   void List::pop_back(){
     if (empty()) return;
     Node* pre_head = _head->_prev;
-    Node* nex_head = _head->_next;
-    pre_head->_next = nex_head;
-    nex_head->_prev = pre_head;
-    delete _head;
-    _head = pre_head;
+    Node* pre_pre_head = pre_head->_prev;
+    delete pre_head;
+    pre_pre_head->_next = _head;
+    _head->_prev = pre_pre_head;
+
+    _size--;
   }
 
   void List::pop_front(){
     if (empty()) return;
-    // move data
-    Node* curr = _head->_next;
-    while(curr != _head->_prev){
-      curr->data = curr->_next->data;
-      curr = curr->_next;
-    }
-    // delete Node
-    Node* pre_head = _head->_prev;
     Node* nex_head = _head->_next;
-    pre_head->_next = nex_head;
-    nex_head->_prev = pre_head;
-    delete _head;
-    _head = pre_head;
+    Node* nex_nex_head = nex_head->_next;
+    delete nex_head;
+    nex_nex_head->_prev = _head;
+    _head->_next = nex_nex_head;
+
+    _size--;
   }
 
   void List::push_back(const_reference val){
-    Node* nex_head = _head->_next;
-    _head->_next = new Node;
-    _head->_next->_prev = _head;
-    _head->_next->index = _head->index + 1;
-    _head->data = val;
+    Node* pre = _head->_prev;
+    Node* curr = new Node(val);
+    curr->_prev = pre;
+    pre->_next = curr;
 
-    _head = _head->_next;
+    curr->_next = _head;
+    _head->_prev = curr;
 
-    _head->_next = nex_head;
-    nex_head->_prev = _head;
+    _size++;
   }
 
   void List::push_front(const_reference val){
-    // increase Node
-    Node* nex_head = _head->_next;
-    _head->_next = new Node;
-    _head->_next->_prev = _head;
-    _head->_next->index = _head->index + 1;
+    Node* nex = _head->_next;
+    Node* curr = new Node(val);
+    curr->_prev = _head;
+    _head->_next = curr;
 
-    _head = _head->_next; // set new head
+    curr->_next = nex;
+    nex->_prev = curr;
 
-    _head->_next = nex_head;
-    nex_head->_prev = _head;
-    // move data
-    Node* curr = _head->_prev;
-    while(curr != _head->_next){
-      curr->data = curr->_prev->data;
-      curr = curr->_prev;
-    }
-    // insert data
-    _head->_next->data = val;
+    _size++;
   }
 
   Node* List::find_Node_addr(const value_type* data_pt){
